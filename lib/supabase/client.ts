@@ -1,9 +1,11 @@
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createBrowserClient } from '@supabase/ssr'
 
-// إنشاء نسخة واحدة للتعامل مع قاعدة البيانات
-export const supabase = createClientComponentClient();
-
-export const checkSession = async () => {
-  const { data: { session } } = await supabase.auth.getSession();
-  return session;
-};
+export const createClient = () => {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    throw new Error('SYSTEM_ERROR: MISSING_SUPABASE_ENVIRONMENT_VARIABLES');
+  }
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  )
+}

@@ -1,17 +1,21 @@
-// lib/supabase/server.ts
-// Server-side clients (Route Handlers, Server Components)
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { createClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 
-// For Route Handlers — uses user's JWT session
-export const createServerClient = () =>
-  createRouteHandlerClient({ cookies });
-
-// Service role — bypasses RLS, server-only, NEVER expose to client
-export const createServiceClient = () =>
-  createClient(
-    "https://uyglhsoafegkickjfoik.supabase.co"!,
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5Z2xoc29hZmVna2lja2pmb2lrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDU2NzU4NSwiZXhwIjoyMDkwMTQzNTg1fQ.og4sbw_XZGni-_vWdJw4PPSaEF59dnmfDn3ZawYvFGs"!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  );
+export function createClient() {
+  const cookieStore = cookies()
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) { return cookieStore.get(name)?.value },
+        set(name: string, value: string, options: CookieOptions) {
+          try { cookieStore.set({ name, value, ...options }) } catch (error) {}
+        },
+        remove(name: string, options: CookieOptions) {
+          try { cookieStore.set({ name, value: '', ...options }) } catch (error) {}
+        },
+      },
+    }
+  )
+}

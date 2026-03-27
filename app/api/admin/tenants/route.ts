@@ -1,9 +1,9 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 
 export const GET = withAuth(['admin'], async (req: NextRequest) => {
-  const supabase = createServerClient();
+  const supabase = createClient();
   const { searchParams } = new URL(req.url);
   let query = supabase.from('tenants')
     .select('*, subscriptions(plan, status, expires_at), users!owner_id(full_name, email)')

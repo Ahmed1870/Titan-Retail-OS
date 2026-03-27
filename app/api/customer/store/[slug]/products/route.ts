@@ -1,9 +1,9 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 
 export async function GET(req: NextRequest, { params }: { params: { slug: string } }) {
-  const supabase = createServerClient();
+  const supabase = createClient();
   const { data: tenant } = await supabase.from('tenants')
     .select('id, store_name, logo_url').eq('slug', params.slug).eq('plan_status', 'active').single();
   if (!tenant) return NextResponse.json({ error: 'Store not found or inactive' }, { status: 404 });

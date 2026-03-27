@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/middleware';
-import { createServerClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 import { orderService } from '@/services/orderService';
 
 export const PATCH = withAuth(['courier'], async (req: NextRequest, { user }: any, params: any) => {
@@ -9,7 +9,7 @@ export const PATCH = withAuth(['courier'], async (req: NextRequest, { user }: an
   const allowed = ['picked_up', 'in_transit', 'delivered', 'failed'];
   if (!allowed.includes(status))
     return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
-  const supabase = createServerClient();
+  const supabase = createClient();
   await supabase.from('deliveries').update({
     status, notes: notes ?? null,
     ...(status === 'delivered' ? { delivered_at: new Date().toISOString() } : {}),

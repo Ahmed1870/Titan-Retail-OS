@@ -260,7 +260,7 @@ export const POST = withAuth(['admin'], async (req, { user }, params) => {
 // ─── app/api/admin/tenants/route.ts ──────────────────────────
 /*
 export const GET = withAuth(['admin'], async (req) => {
-  const supabase = createServerClient();
+  const supabase = createClient();
   const { searchParams } = new URL(req.url);
   let query = supabase.from('tenants').select('*, subscriptions(plan, status, expires_at)').is('deleted_at', null).order('created_at', { ascending: false });
   if (searchParams.get('status')) query = query.eq('plan_status', searchParams.get('status')!);
@@ -294,7 +294,7 @@ export const GET = withAuth(['admin'], async (req) => {
 // ─── app/api/courier/deliveries/route.ts ─────────────────────
 /*
 export const GET = withAuth(['courier'], async (req, { user }) => {
-  const supabase = createServerClient();
+  const supabase = createClient();
   const { data } = await supabase
     .from('deliveries')
     .select('*, orders(total, shipping_address, status, order_items(quantity, products(name)))')
@@ -312,7 +312,7 @@ export const PATCH = withAuth(['courier'], async (req, { user }, params) => {
   if (!allowedStatuses.includes(status))
     return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
 
-  const supabase = createServerClient();
+  const supabase = createClient();
   await supabase.from('deliveries')
     .update({ status, notes, ...(status === 'delivered' ? { delivered_at: new Date().toISOString() } : {}) })
     .eq('id', params!.id).eq('courier_id', user.id);
@@ -329,7 +329,7 @@ export const PATCH = withAuth(['courier'], async (req, { user }, params) => {
 // ─── app/api/customer/orders/route.ts ────────────────────────
 /*
 export const GET = withAuth(['customer'], async (req, { user }) => {
-  const supabase = createServerClient();
+  const supabase = createClient();
   const { data } = await supabase
     .from('orders')
     .select('*, order_items(*, products(name, images)), deliveries(status, tracking_url)')
@@ -342,7 +342,7 @@ export const GET = withAuth(['customer'], async (req, { user }) => {
 // ─── app/api/customer/store/[slug]/products/route.ts ─────────
 /*
 export async function GET(req: NextRequest, { params }: { params: { slug: string } }) {
-  const supabase = createServerClient();
+  const supabase = createClient();
   const { data: tenant } = await supabase.from('tenants').select('id').eq('slug', params.slug).eq('plan_status', 'active').single();
   if (!tenant) return NextResponse.json({ error: 'Store not found' }, { status: 404 });
 

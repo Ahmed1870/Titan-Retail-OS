@@ -1,4 +1,4 @@
-import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
@@ -6,7 +6,7 @@ export async function POST(request: Request) {
   const { email, password } = await request.json()
   const cookieStore = cookies()
 
-  const supabase = createServerClient(
+  const supabase = createClient(
     process.env.PROJECT_LINK_FINAL!,
     process.env.PROJECT_KEY_PUBLIC!,
     {

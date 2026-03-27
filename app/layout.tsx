@@ -1,16 +1,19 @@
-// app/layout.tsx
-import type { Metadata } from 'next';
 import './globals.css';
+import { LanguageProvider } from '@/context/LanguageContext';
 
-export const metadata: Metadata = {
+export const metadata = {
   title: 'Titan Retail OS',
-  description: 'Multi-Tenant SaaS ERP & Marketplace Platform',
+  description: 'The ultimate management system for retail',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="ar">
+      <body>
+        <LanguageProvider>
+          {children}
+        </LanguageProvider>
+      </body>
     </html>
   );
 }

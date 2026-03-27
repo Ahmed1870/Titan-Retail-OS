@@ -1,50 +1,47 @@
-export const dynamic = "force-dynamic";
-import { createRouteHandlerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
-import { rateLimit } from '@/lib/utils';
-import { referralService } from '@/services';
-import { z } from 'zod';
+import { createServerClient } from '@/lib/supabase/server'
+import { NextResponse } from 'next/server'
 
-const schema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  full_name: z.string().min(2),
-  phone: z.string().optional(),
-  store_name: z.string().min(2),
-  referral_code: z.string().optional(),
-});
+export async function POST(req: Request) {
+  const supabase = createServerClient()
+  try {
+    const { email, password, full_name, store_name, phone, referral_code } = await req.json()
 
-export async function POST(req: NextRequest) {
-  const ip = req.headers.get('x-forwarded-for') ?? 'unknown';
-  if (!await rateLimit(`register_${ip}`, 5, 60 * 60 * 1000))
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    // 1. Auth Signup
+    const { data: authData, error: authErr } = await supabase.auth.signUp({ email, password })
+    if (authErr) throw authErr
 
-  const parsed = schema.safeParse(await req.json());
-  if (!parsed.success)
-    return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 });
+    // 2. Create Tenant
+    const slug = store_name.toLowerCase().replace(/ /g, '-') + '-' + Math.random().toString(36).substring(2, 5)
+    const { data: tenant, error: tErr } = await supabase.from('tenants').insert({
+      store_name, slug, owner_id: authData.user?.id, phone, current_plan: 'starter'
+    }).select().single()
+    if (tErr) throw tErr
 
-  const { email, password, full_name, phone, store_name, referral_code } = parsed.data;
-  const supabase = createRouteHandlerClient({ cookies });
+    // 3. Referral Logic (The Merchant Link)
+    if (referral_code) {
+      const { data: referrer } = await supabase.from('tenants').select('id').eq('referral_code', referral_code).single()
+      if (referrer) {
+        await supabase.from('referrals').insert({
+          referrer_tenant_id: referrer.id,
+          referred_tenant_id: tenant.id,
+          status: 'pending'
+        })
+        // Update tenant's referred_by for direct access
+        await supabase.from('tenants').update({ referred_by: referrer.id }).eq('id', tenant.id)
+      }
+    }
 
-  const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
-  if (authError) return NextResponse.json({ error: authError.message }, { status: 400 });
+    // 4. Create Public User Profile
+    await supabase.from('users').insert({
+      id: authData.user?.id,
+      tenant_id: tenant.id,
+      full_name,
+      email,
+      role: 'merchant'
+    })
 
-  const userId = authData.user!.id;
-  const slug = store_name.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + userId.slice(0, 6);
-
-  const { data: tenant, error: tErr } = await supabase
-    .from('tenants').insert({ store_name, slug, owner_id: userId }).select().single();
-  if (tErr) return NextResponse.json({ error: tErr.message }, { status: 400 });
-
-  await Promise.all([
-    supabase.from('users').insert({ id: userId, tenant_id: tenant.id, role: 'merchant', full_name, phone: phone ?? null, email }),
-    supabase.from('wallets').insert({ tenant_id: tenant.id }),
-  ]);
-
-  if (referral_code) {
-    try { await referralService.applyReferralCode(tenant.id, referral_code); } catch {}
+    return NextResponse.json({ success: true })
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 400 })
   }
-
-  return NextResponse.json({ userId, tenantId: tenant.id, slug }, { status: 201 });
 }

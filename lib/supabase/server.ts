@@ -11,7 +11,7 @@ export const createServerClient = () =>
 // Service role — bypasses RLS, server-only, NEVER expose to client
 export const createServiceClient = () =>
   createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    process.env.DB_URL!,
+    process.env.DB_SERVICE_ROLE!,
     { auth: { autoRefreshToken: false, persistSession: false } }
   );

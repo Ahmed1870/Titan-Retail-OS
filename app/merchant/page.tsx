@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { redirect } from 'next/navigation';
 import { createServerClient } from '@/lib/supabase/server';
 import MerchantDashboardClient from '@/components/merchant/MerchantDashboardClient';

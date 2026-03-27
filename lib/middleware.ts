@@ -5,8 +5,8 @@ export function withAuth(allowedRoles: string[], handler: any) {
   return async (request: NextRequest) => {
     let response = NextResponse.next()
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      process.env.PROJECT_LINK_FINAL!,
+      process.env.PROJECT_KEY_PUBLIC!,
       {
         cookies: {
           get(name: string) { return request.cookies.get(name)?.value },

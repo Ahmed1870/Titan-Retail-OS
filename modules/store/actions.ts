@@ -1,41 +1,35 @@
 import { createClient } from '@/lib/supabase/server';
 
-export async function getStoreDataAction(slug: string, params: { category?: string, q?: string } = {}) {
+export async function getStoreDataAction(slug: string) {
   const supabase = createClient();
-  
-  // جلب بيانات التاجر
-  const { data: tenant } = await supabase.from('tenants')
-    .select('id, store_name, logo_url')
+
+  // 1. جلب بيانات المتجر من الـ Slug
+  const { data: tenant, error: tenantError } = await supabase
+    .from('tenants')
+    .select('id, store_name, logo_url, settings, plan_status')
     .eq('slug', slug)
-    .eq('plan_status', 'active')
     .single();
 
-  if (!tenant) throw new Error('Store not found');
+  if (tenantError || !tenant) return { error: 'STORE_NOT_FOUND' };
+  if (tenant.plan_status !== 'active') return { error: 'STORE_INACTIVE' };
 
-  // جلب المنتجات
-  let query = supabase.from('products')
-    .select('id, name, description, price, tax_rate, images, category, inventory(quantity)')
+  // 2. جلب المنتجات المتاحة فقط لهذا المتجر
+  const { data: products, error: prodError } = await supabase
+    .from('products')
+    .select('*, inventory(quantity)')
     .eq('tenant_id', tenant.id)
     .eq('is_active', true)
-    .is('deleted_at', null);
-
-  if (params.category) query = query.eq('category', params.category);
-  if (params.q) query = query.ilike('name', `%${params.q}%`);
-
-  const { data: products } = await query;
-  return { store: tenant, products: products ?? [] };
-}
-
-export async function getCustomerOrdersAction() {
-  const supabase = createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) throw new Error('Unauthorized');
-
-  const { data } = await supabase.from('orders')
-    .select('*, order_items(*, products(name, images)), deliveries(status, tracking_url)')
-    .eq('customer_id', session.user.id)
-    .is('deleted_at', null)
     .order('created_at', { ascending: false });
-    
-  return data ?? [];
+
+  if (prodError) return { error: prodError.message };
+
+  return {
+    data: {
+      tenant,
+      products: products.map(p => ({
+        ...p,
+        stock: Array.isArray(p.inventory) ? p.inventory[0]?.quantity : p.inventory?.quantity || 0
+      }))
+    }
+  };
 }

@@ -1,6 +1,5 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '';
 import { auditService } from '@/services';
 
 export const GET = withAuth(['admin'], async (req: NextRequest) => {

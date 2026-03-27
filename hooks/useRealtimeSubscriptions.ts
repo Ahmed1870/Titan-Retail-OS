@@ -39,6 +39,7 @@ export function useRealtimeSubscriptions() {
           .select('*, tenants(store_name, logo_url)')
           .eq('id', payload.new.id).single();
         if (data) {
+          // @ts-ignore
           setRequests(prev => [data as SubscriptionRequest, ...prev]);
           setNewRequestId(data.id);
           playAlert();

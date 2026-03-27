@@ -1,4 +1,3 @@
-// services/inventoryService.ts
 import { createServiceClient } from '@/lib/supabase/server';
 import { ServiceError } from '@/services/errors';
 import type { Inventory, InventoryLog } from '@/types';
@@ -10,7 +9,8 @@ export const inventoryService = {
       .from('inventory')
       .select('*, products(name, sku, images, is_active)')
       .eq('tenant_id', tenantId)
-      .order('updated_at', { ascending: false });
+      .is('products.deleted_at', null)
+      .order('quantity', { ascending: true });
 
     if (productId) query = query.eq('product_id', productId);
     const { data, error } = await query;
@@ -18,31 +18,16 @@ export const inventoryService = {
     return (data ?? []) as Inventory[];
   },
 
-  async getLowStockAlerts(tenantId: string): Promise<Inventory[]> {
+  async getLowStockCount(tenantId: string): Promise<number> {
     const supabase = createServiceClient();
-    const { data, error } = await supabase
+    const { count, error } = await supabase
       .from('inventory')
-      .select('*, products(name, sku, images)')
+      .select('*', { count: 'exact', head: true })
       .eq('tenant_id', tenantId)
       .filter('quantity', 'lte', 'low_stock_threshold');
 
-    if (error) throw new ServiceError('LOW_STOCK_FETCH_FAILED', error.message);
-    return (data ?? []) as Inventory[];
-  },
-
-  async getLogs(tenantId: string, productId?: string, limit: number = 50): Promise<InventoryLog[]> {
-    const supabase = createServiceClient();
-    let query = supabase
-      .from('inventory_logs')
-      .select('*, products(name, sku)')
-      .eq('tenant_id', tenantId)
-      .order('created_at', { ascending: false })
-      .limit(limit);
-
-    if (productId) query = query.eq('product_id', productId);
-    const { data, error } = await query;
-    if (error) throw new ServiceError('INV_LOG_FETCH_FAILED', error.message);
-    return (data ?? []) as InventoryLog[];
+    if (error) return 0;
+    return count ?? 0;
   },
 
   async adjustStock(payload: {
@@ -51,9 +36,8 @@ export const inventoryService = {
     delta: number;
     reason: string;
     performedBy: string;
-  }): Promise<{ previous: number; new: number }> {
+  }) {
     const supabase = createServiceClient();
-
     const { data: inv, error: fetchErr } = await supabase
       .from('inventory')
       .select('quantity')
@@ -69,8 +53,8 @@ export const inventoryService = {
     const { error: updateErr } = await supabase
       .from('inventory')
       .update({ quantity: newQty })
-      .eq('tenant_id', payload.tenantId)
-      .eq('product_id', payload.productId);
+      .eq('product_id', payload.productId)
+      .eq('tenant_id', payload.tenantId);
 
     if (updateErr) throw new ServiceError('INVENTORY_UPDATE_FAILED', updateErr.message);
 
@@ -85,32 +69,5 @@ export const inventoryService = {
     });
 
     return { previous: inv.quantity, new: newQty };
-  },
-
-  async setThreshold(tenantId: string, productId: string, threshold: number) {
-    const supabase = createServiceClient();
-    const { error } = await supabase
-      .from('inventory')
-      .update({ low_stock_threshold: threshold })
-      .eq('tenant_id', tenantId)
-      .eq('product_id', productId);
-
-    if (error) throw new ServiceError('THRESHOLD_UPDATE_FAILED', error.message);
-  },
-
-  async getLowStockCount(tenantId: string): Promise<number> {
-    const supabase = createServiceClient();
-    const { data } = await supabase
-      .from('inventory')
-      .select('id')
-      .eq('tenant_id', tenantId);
-
-    // Count items where quantity <= threshold
-    const { data: allInv } = await supabase
-      .from('inventory')
-      .select('quantity, low_stock_threshold')
-      .eq('tenant_id', tenantId);
-
-    return (allInv ?? []).filter(i => i.quantity <= i.low_stock_threshold).length;
-  },
+  }
 };

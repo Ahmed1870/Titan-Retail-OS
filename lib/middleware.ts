@@ -26,3 +26,14 @@ export function withAuth(allowedRoles: string[], handler: any) {
     return handler(request, supabase)
   }
 }
+
+export function withWebhookAuth(handler: any) {
+  return async (request: NextRequest) => {
+    // منطق بسيط للتأكد من الـ Webhook (ممكن تطوره لاحقاً)
+    const authHeader = request.headers.get('authorization');
+    if (authHeader !== `Bearer ${process.env.WEBHOOK_SECRET}`) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    return handler(request);
+  }
+}

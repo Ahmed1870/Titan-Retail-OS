@@ -3,9 +3,9 @@
   "buildCommand": "next build",
   "outputDirectory": ".next",
   "env": {
-    "DB_URL": "@supabase-url",
-    "DB_ANON_KEY": "@supabase-anon-key",
-    "DB_SERVICE_ROLE": "@supabase-service-key",
+    "PROJECT_LINK_FINAL": "@supabase-url",
+    "PROJECT_KEY_PUBLIC": "@supabase-anon-key",
+    "PROJECT_KEY_PRIVATE": "@supabase-service-key",
     "WEBHOOK_SECRET": "@webhook-secret",
     "NEXT_PUBLIC_WHATSAPP_NUMBER": "@whatsapp-number"
   }

@@ -11,7 +11,7 @@ export const createServerClient = () =>
 // Service role — bypasses RLS, server-only, NEVER expose to client
 export const createServiceClient = () =>
   createClient(
-    process.env.PROJECT_LINK_FINAL!,
-    process.env.PROJECT_KEY_PRIVATE!,
+    "https://uyglhsoafegkickjfoik.supabase.co"!,
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5Z2xoc29hZmVna2lja2pmb2lrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDU2NzU4NSwiZXhwIjoyMDkwMTQzNTg1fQ.og4sbw_XZGni-_vWdJw4PPSaEF59dnmfDn3ZawYvFGs"!,
     { auth: { autoRefreshToken: false, persistSession: false } }
   );

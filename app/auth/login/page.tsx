@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
@@ -7,42 +8,117 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const supabase = createClient();
   const router = useRouter();
+
+  // فحص الجلسة النشطة: إذا كان المستخدم مسجلاً بالفعل، يتم تحويله فوراً دون انتظار
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data: userRecord } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (userRecord?.role === 'merchant') router.push('/merchant');
+        else if (userRecord?.role === 'admin') router.push('/admin');
+        else if (userRecord?.role === 'courier') router.push('/courier');
+      }
+    };
+    checkSession();
+  }, [router, supabase]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true); setError('');
-    const res = await fetch('/api/auth/login', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+    setLoading(true);
+    setError('');
+
+    // تسجيل الدخول مع تفعيل حفظ الجلسة
+    const { data, error: authError } = await supabase.auth.signInWithPassword({ 
+      email, 
+      password 
     });
-    const data = await res.json();
-    if (!res.ok) { setError(data.error); setLoading(false); return; }
-    router.push('/');
+
+    if (authError) {
+      setError('خطأ في البيانات: ' + authError.message);
+      setLoading(false);
+      return;
+    }
+
+    // جلب الدور (Role) من السكيما الخاصة بك (Section 4) لتحديد الوجهة
+    const { data: userRecord } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', data.user.id)
+      .single();
+
+    if (userRecord?.role === 'merchant') router.push('/merchant');
+    else if (userRecord?.role === 'admin') router.push('/admin');
+    else if (userRecord?.role === 'courier') router.push('/courier');
+    else router.push('/');
   };
 
-  const inp: React.CSSProperties = { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '12px 14px', color: '#e2e8f0', fontSize: 14, outline: 'none', width: '100%' };
-
   return (
-    <div style={{ minHeight: '100vh', background: '#080c14', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, system-ui, sans-serif' }}>
-      <div style={{ width: '100%', maxWidth: 400, padding: '0 24px' }}>
-        <div style={{ textAlign: 'center', marginBottom: 40 }}>
-          <div style={{ width: 48, height: 48, borderRadius: 14, background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, margin: '0 auto 16px' }}>⬡</div>
-          <h1 style={{ color: '#f1f5f9', fontSize: 26, fontWeight: 700 }}>Titan Retail OS</h1>
-          <p style={{ color: '#475569', fontSize: 14, marginTop: 6 }}>Sign in to your account</p>
-        </div>
-        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {error && <div style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', color: '#f87171', padding: '10px 14px', borderRadius: 10, fontSize: 13 }}>{error}</div>}
-          <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required style={inp} />
-          <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} required style={inp} />
-          <button type="submit" disabled={loading} style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', color: 'white', border: 'none', borderRadius: 10, padding: '13px 0', fontWeight: 700, fontSize: 15, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1 }}>
-            {loading ? 'Signing in...' : 'Sign In →'}
-          </button>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-            <a href="/auth/register" style={{ color: '#7c3aed', textDecoration: 'none' }}>Create account</a>
-            <a href="/auth/reset-password" style={{ color: '#475569', textDecoration: 'none' }}>Forgot password?</a>
+    <div className="min-h-screen bg-[#080c14] flex items-center justify-center p-4" dir="rtl">
+      <div className="w-full max-w-md bg-white/5 p-8 rounded-3xl border border-white/10 shadow-2xl backdrop-blur-md">
+        <div className="flex justify-center mb-6">
+          <div className="w-16 h-16 bg-gradient-to-tr from-violet-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-violet-500/20">
+            <span className="text-white text-3xl font-bold">T</span>
           </div>
+        </div>
+        
+        <h2 className="text-3xl font-black text-white mb-2 text-center">أهلاً بك في تيتان</h2>
+        <p className="text-gray-400 text-center mb-8 text-sm font-medium">سجل دخولك لإدارة تجارتك بذكاء</p>
+
+        <form onSubmit={handleLogin} className="flex flex-col gap-4">
+          <div className="space-y-1">
+            <label className="text-xs text-gray-400 mr-2 font-bold">البريد الإلكتروني</label>
+            <input 
+              type="email" 
+              name="email"
+              autoComplete="username" 
+              placeholder="name@company.com" 
+              className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-violet-500 transition-all text-right"
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              required
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs text-gray-400 mr-2 font-bold">كلمة المرور</label>
+            <input 
+              type="password" 
+              name="password"
+              autoComplete="current-password" 
+              placeholder="••••••••" 
+              className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-violet-500 transition-all text-right"
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              required
+            />
+          </div>
+
+          <button 
+            type="submit"
+            disabled={loading} 
+            className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 p-4 rounded-2xl font-black text-white mt-4 hover:shadow-[0_0_20px_rgba(139,92,246,0.4)] transition-all active:scale-95"
+          >
+            {loading ? 'جاري التحقق من الهوية...' : 'دخول للمنصة'}
+          </button>
+
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/20 p-3 rounded-xl mt-2">
+              <p className="text-red-400 text-center text-xs font-bold">{error}</p>
+            </div>
+          )}
         </form>
+        
+        <p className="text-center mt-6 text-gray-500 text-xs">
+          نسيت كلمة السر؟ <a href="/auth/forgot-password" size="sm" className="text-violet-400 font-bold hover:underline">استعادة الحساب</a>
+        </p>
       </div>
     </div>
   );

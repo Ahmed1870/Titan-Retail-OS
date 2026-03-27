@@ -2,9 +2,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: { headers: request.headers },
-  })
+  let response = NextResponse.next({ request: { headers: request.headers } })
 
   const supabase = createServerClient(
     process.env.PROJECT_LINK_FINAL!,
@@ -29,28 +27,40 @@ export async function middleware(request: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession()
   const path = request.nextUrl.pathname
 
-  // 1. المسارات المحمية (تتطلب تسجيل دخول)
-  const protectedPaths = ['/merchant', '/admin', '/courier', '/store']
-  const isProtected = protectedPaths.some(p => path.startsWith(p))
-
-  if (isProtected && !session) {
-    return NextResponse.redirect(new URL('/auth/login', request.url))
+  // 1. السماح لصفحات الـ Auth والـ API والـ Static Files
+  if (path.startsWith('/auth') || path.startsWith('/api') || path === '/' || path.includes('.')) {
+    return response
   }
 
-  // 2. المسارات العامة (يُسمح للجميع بدخولها حتى لو مسجل دخول أو لا)
-  // تشمل اللاندنج بيدج وصفحات الاستعادة والـ API الخاص بها
-  const publicPaths = ['/auth/forgot-password', '/auth/reset-password', '/api/auth/reset']
-  const isPublic = publicPaths.some(p => path.startsWith(p))
+  // 2. حماية المسارات (Protected Routes) بناءً على السكيما
+  const protectedConfigs = [
+    { prefix: '/merchant', role: 'merchant' },
+    { prefix: '/admin', role: 'admin' },
+    { prefix: '/courier', role: 'courier' },
+    { prefix: '/store', role: 'customer' }
+  ]
 
-  // 3. منع المسجلين دخول من العودة لصفحات الـ Login/Register
-  if (session && (path === '/auth/login' || path === '/auth/register')) {
-    return NextResponse.redirect(new URL('/merchant', request.url))
+  const currentConfig = protectedConfigs.find(c => path.startsWith(c.prefix))
+
+  if (currentConfig) {
+    if (!session) return NextResponse.redirect(new URL('/auth/login', request.url))
+
+    // التحقق من الـ Role من جدول users في السكيما (Section 4)
+    const { data: user } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', session.user.id)
+      .single()
+
+    if (!user || user.role !== currentConfig.role) {
+      // إذا كان مسجل دخول بس داخل مكان غلط (مثلاً Merchant بيحاول يدخل Admin)
+      return NextResponse.redirect(new URL('/', request.url))
+    }
   }
 
   return response
 }
 
 export const config = {
-  // استثناء الملفات الساكنة والـ API من الفحص لسرعة الأداء
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 }

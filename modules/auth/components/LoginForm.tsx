@@ -1,52 +1,53 @@
-'use client';
-import { useFormStatus } from 'react-dom';
-import { signInAction } from '../actions/signIn';
+"use client";
 
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <button 
-      disabled={pending}
-      className="w-full bg-white text-black font-black py-4 rounded-2xl hover:bg-slate-200 transition-all active:scale-95 disabled:opacity-50"
-    >
-      {pending ? 'AUTHENTICATING...' : 'LOG IN TO TITAN'}
-    </button>
-  );
-}
+import { useState } from 'react';
+import { signInAction } from '@/modules/auth/actions/signIn';
 
 export default function LoginForm() {
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(formData: FormData) {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await signInAction(formData);
+      if (result?.error) {
+        setError(result.error);
+      }
+    } catch (e) {
+      setError("حدث خطأ غير متوقع");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
-    <div className="max-w-md w-full mx-auto space-y-8 p-8 bg-[#0f171a] border border-slate-800 rounded-3xl">
-      <div className="text-center">
-        <h2 className="text-3xl font-black text-white tracking-tighter">WELCOME BACK</h2>
-        <p className="text-slate-500 text-xs uppercase tracking-widest mt-2">Access your retail ecosystem</p>
-      </div>
-
-      // @ts-ignore
-      // @ts-ignore
-      {/* @ts-ignore */}
-      <form action={signInAction} className="space-y-4">
-        <div>
-          <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Email Address</label>
-          <input 
-            name="email" 
-            type="email" 
-            required 
-            className="w-full bg-[#020617] border border-slate-800 p-4 rounded-xl text-white focus:border-emerald-500 outline-none transition-all"
-          />
-        </div>
-        
-        <div>
-          <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Password</label>
-          <input 
-            name="password" 
-            type="password" 
-            required 
-            className="w-full bg-[#020617] border border-slate-800 p-4 rounded-xl text-white focus:border-emerald-500 outline-none transition-all"
-          />
-        </div>
-
-        <SubmitButton />
+    <div className="w-full max-w-md p-8 bg-zinc-900 rounded-lg shadow-xl border border-zinc-800">
+      <h2 className="text-2xl font-bold text-white mb-6 text-center">تسجيل الدخول - تايتان</h2>
+      <form action={handleSubmit} className="space-y-4">
+        {error && <div className="p-3 bg-red-500/10 border border-red-500 text-red-500 text-sm rounded">{error}</div>}
+        <input 
+          name="email" 
+          type="email" 
+          placeholder="البريد الإلكتروني" 
+          required 
+          className="w-full p-3 bg-zinc-800 border border-zinc-700 text-white rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <input 
+          name="password" 
+          type="password" 
+          placeholder="كلمة المرور" 
+          required 
+          className="w-full p-3 bg-zinc-800 border border-zinc-700 text-white rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <button 
+          type="submit" 
+          disabled={loading}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded transition duration-200 disabled:opacity-50"
+        >
+          {loading ? "جاري الدخول..." : "دخول"}
+        </button>
       </form>
     </div>
   );

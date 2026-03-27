@@ -29,7 +29,7 @@ export async function middleware(request: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession()
   const path = request.nextUrl.pathname
 
-  // 1. المسارات التي تتطلب تسجيل دخول (Protected Routes)
+  // 1. المسارات المحمية (تتطلب تسجيل دخول)
   const protectedPaths = ['/merchant', '/admin', '/courier', '/store']
   const isProtected = protectedPaths.some(p => path.startsWith(p))
 
@@ -37,8 +37,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/auth/login', request.url))
   }
 
-  // 2. إعادة توجيه المسجلين دخول بعيداً عن صفحات الـ Auth (لو مسجل ميروحش يسجل تاني)
-  if (session && (path.startsWith('/auth/login') || path.startsWith('/auth/register'))) {
+  // 2. المسارات العامة (يُسمح للجميع بدخولها حتى لو مسجل دخول أو لا)
+  // تشمل اللاندنج بيدج وصفحات الاستعادة والـ API الخاص بها
+  const publicPaths = ['/auth/forgot-password', '/auth/reset-password', '/api/auth/reset']
+  const isPublic = publicPaths.some(p => path.startsWith(p))
+
+  // 3. منع المسجلين دخول من العودة لصفحات الـ Login/Register
+  if (session && (path === '/auth/login' || path === '/auth/register')) {
     return NextResponse.redirect(new URL('/merchant', request.url))
   }
 
@@ -46,5 +51,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
+  // استثناء الملفات الساكنة والـ API من الفحص لسرعة الأداء
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 }

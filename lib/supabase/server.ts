@@ -1,22 +1,11 @@
-import { createServerClient as supabaseServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
-// استخدام الأسماء المخصصة اللي إنت ضفتها في Vercel
-const SUPABASE_URL = process.env.PROJECT_LINK_FINAL
-const SUPABASE_ANON_KEY = process.env.PROJECT_KEY_PUBLIC
-const SUPABASE_SERVICE_ROLE = process.env.PROJECT_KEY_PRIVATE
-
-export function createClient() {
+export const createClient = () => {
   const cookieStore = cookies()
-  
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    throw new Error("Missing Supabase Environment Variables");
-  }
-
-  return supabaseServerClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY,
+  return createServerClient(
+    process.env.PROJECT_LINK_FINAL!,
+    process.env.PROJECT_KEY_PUBLIC!,
     {
       cookies: {
         get(name: string) { return cookieStore.get(name)?.value },
@@ -29,13 +18,4 @@ export function createClient() {
       },
     }
   )
-}
-
-export const createServerClient = createClient;
-
-export function createServiceClient() {
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE) {
-    throw new Error("Missing Supabase Service Role Key");
-  }
-  return createSupabaseClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE)
 }

@@ -1,8 +1,6 @@
-// lib/supabase/client.ts
-// Browser-side Supabase client (for React components)
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-// @ts-ignore
-// @ts-ignore
-import type { Database } from '@/types/supabase';
+import { createClient } from '@supabase/supabase-js'
 
-export const createClient = () => createClientComponentClient<Database>();
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://uyglhsoafegkickjfoik.supabase.co'
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)

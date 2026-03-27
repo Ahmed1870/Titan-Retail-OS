@@ -41,7 +41,7 @@ export function useRealtimeSubscriptions() {
         if (data) {
           // @ts-ignore
           setRequests(prev => [data as SubscriptionRequest, ...prev]);
-          setNewRequestId(data.id);
+          setNewRequestId((data as any).id);
           playAlert();
           if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
           setTimeout(() => setNewRequestId(null), 3000);

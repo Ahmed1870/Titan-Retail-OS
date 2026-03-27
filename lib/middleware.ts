@@ -1,4 +1,3 @@
-// lib/middleware.ts
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
@@ -13,22 +12,19 @@ type RouteContext = {
 type RouteHandler = (
   req: NextRequest,
   ctx: RouteContext,
-  params?: Record<string, string>
+  params?: any
 ) => Promise<NextResponse>;
 
-/**
- * withAuth — wraps an API route with auth + role guard
- *
- * Usage:
- *   export const GET = withAuth(['merchant', 'admin'], async (req, { user, tenant }) => { ... })
- */
 export function withAuth(allowedRoles: UserRole[], handler: RouteHandler) {
-  return async (req: NextRequest, { params }: { params?: Record<string, string> } = {}) => {
+  return async (req: NextRequest, { params }: { params?: any } = {}) => {
     try {
-      const supabase = createRouteHandlerClient({ cookies });
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      // التصحيح الجوهري: نمرر الـ cookies كـ function
+      const cookieStore = cookies();
+      const supabase = createRouteHandlerClient({ 
+        cookies: () => cookieStore 
+      });
+
+      const { data: { session } } = await supabase.auth.getSession();
 
       if (!session) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -52,7 +48,7 @@ export function withAuth(allowedRoles: UserRole[], handler: RouteHandler) {
         );
       }
 
-      // Update last_seen
+      // تحديث آخر ظهور (سيلنت)
       supabase.from('users').update({ last_seen_at: new Date().toISOString() }).eq('id', user.id);
 
       return await handler(req, { user: user as any, tenant: user.tenants as Tenant }, params);
@@ -66,30 +62,31 @@ export function withAuth(allowedRoles: UserRole[], handler: RouteHandler) {
   };
 }
 
-/**
- * withWebhookAuth — validates webhook signature
- */
 export function withWebhookAuth(handler: (req: NextRequest, body: unknown) => Promise<NextResponse>) {
   return async (req: NextRequest) => {
-    const signature = req.headers.get('x-webhook-signature');
-    const secret = "Titan_System_Admin_2026";
+    try {
+      const signature = req.headers.get('x-webhook-signature');
+      const secret = "Titan_System_Admin_2026";
 
-    if (!signature || !secret) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      if (!signature || !secret) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+
+      const body = await req.text();
+      const expected = await crypto.subtle.sign(
+        'HMAC',
+        await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']),
+        new TextEncoder().encode(body)
+      );
+      const expectedHex = Array.from(new Uint8Array(expected)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+      if (signature !== expectedHex) {
+        return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+      }
+
+      return handler(req, JSON.parse(body));
+    } catch (e) {
+      return NextResponse.json({ error: 'Invalid webhook request' }, { status: 400 });
     }
-
-    const body = await req.text();
-    const expected = await crypto.subtle.sign(
-      'HMAC',
-      await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']),
-      new TextEncoder().encode(body)
-    );
-    const expectedHex = Array.from(new Uint8Array(expected)).map(b => b.toString(16).padStart(2, '0')).join('');
-
-    if (signature !== expectedHex) {
-      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
-    }
-
-    return handler(req, JSON.parse(body));
   };
 }

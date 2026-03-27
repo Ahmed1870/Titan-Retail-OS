@@ -5,7 +5,7 @@ export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request: { headers: request.headers } })
 
   const supabase = createServerClient(
-    process.env.PROJECT_LINK_FINAL!,
+    'https://uyglhsoafegkickjfoik.supabase.co',
     process.env.PROJECT_KEY_PUBLIC!,
     {
       cookies: {
@@ -27,40 +27,25 @@ export async function middleware(request: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession()
   const path = request.nextUrl.pathname
 
-  // 1. السماح لصفحات الـ Auth والـ API والـ Static Files
-  if (path.startsWith('/auth') || path.startsWith('/api') || path === '/' || path.includes('.')) {
-    return response
+  // إذا كان مسجل دخول ويحاول دخول صفحة اللوجن أو اللاندنج
+  if (session && (path === '/' || path.startsWith('/auth'))) {
+    const { data: user } = await supabase.from('users').select('role').eq('id', session.user.id).single()
+    
+    // التوجيه بناءً على الـ Role الفعلي في السكيما
+    if (user?.role === 'merchant') return NextResponse.redirect(new URL('/merchant', request.url))
+    if (user?.role === 'admin') return NextResponse.redirect(new URL('/admin', request.url))
+    if (user?.role === 'courier') return NextResponse.redirect(new URL('/courier', request.url))
   }
 
-  // 2. حماية المسارات (Protected Routes) بناءً على السكيما
-  const protectedConfigs = [
-    { prefix: '/merchant', role: 'merchant' },
-    { prefix: '/admin', role: 'admin' },
-    { prefix: '/courier', role: 'courier' },
-    { prefix: '/store', role: 'customer' }
-  ]
-
-  const currentConfig = protectedConfigs.find(c => path.startsWith(c.prefix))
-
-  if (currentConfig) {
-    if (!session) return NextResponse.redirect(new URL('/auth/login', request.url))
-
-    // التحقق من الـ Role من جدول users في السكيما (Section 4)
-    const { data: user } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', session.user.id)
-      .single()
-
-    if (!user || user.role !== currentConfig.role) {
-      // إذا كان مسجل دخول بس داخل مكان غلط (مثلاً Merchant بيحاول يدخل Admin)
-      return NextResponse.redirect(new URL('/', request.url))
-    }
+  // حماية المسارات (إذا لم يكن هناك جلسة)
+  const protectedRoutes = ['/merchant', '/admin', '/courier']
+  if (!session && protectedRoutes.some(route => path.startsWith(route))) {
+    return NextResponse.redirect(new URL('/auth/login', request.url))
   }
 
   return response
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 }

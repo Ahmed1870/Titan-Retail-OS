@@ -1,48 +1,25 @@
-export const dynamic = "force-dynamic";
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
-import { rateLimit } from '@/lib/utils';
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server'
 
-export async function POST(req: NextRequest) {
-  try {
-    const ip = req.headers.get('x-forwarded-for') ?? 'unknown';
-    
-    // نظام الحماية من التكرار
-    const isRateLimited = await rateLimit(`login_${ip}`, 10, 60 * 1000);
-    if (!isRateLimited) {
-      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+export async function POST(request: Request) {
+  const { email, password } = await request.json()
+  const cookieStore = cookies()
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) { return cookieStore.get(name)?.value },
+        set(name: string, value: string, options: any) { cookieStore.set({ name, value, ...options }) },
+        remove(name: string, options: any) { cookieStore.set({ name, value: '', ...options }) },
+      },
     }
+  )
 
-    const { email, password } = await req.json();
-    
-    // التصحيح الجوهري لـ Next.js 14
-    const cookieStore = cookies();
-    const supabase = createRouteHandlerClient({ 
-      cookies: () => cookieStore 
-    });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 401 });
-    }
-
-    // جلب بيانات المستخدم والتاجر المرتبط به
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('*, tenants(*)')
-      .eq('id', data.user.id)
-      .single();
-
-    if (userError || !user) {
-      return NextResponse.json({ error: 'User data not found' }, { status: 404 });
-    }
-
-    return NextResponse.json({ user, session: data.session });
-
-  } catch (err) {
-    console.error('Login Error:', err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-  }
+  if (error) return NextResponse.json({ error: error.message }, { status: 401 })
+  return NextResponse.json({ user: data.user })
 }

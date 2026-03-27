@@ -117,7 +117,7 @@ export default function LoginPage() {
         </form>
         
         <p className="text-center mt-6 text-gray-500 text-xs">
-          نسيت كلمة السر؟ <a href="/auth/forgot-password" size="sm" className="text-violet-400 font-bold hover:underline">استعادة الحساب</a>
+          نسيت كلمة السر؟ <a href="/auth/forgot-password"  className="text-violet-400 font-bold hover:underline">استعادة الحساب</a>
         </p>
       </div>
     </div>

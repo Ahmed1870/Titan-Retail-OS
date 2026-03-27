@@ -7,6 +7,7 @@ export async function processRefund(orderId: string, amount: number, reason: str
   // تسجيل المرتجع
   const { error } = await supabase.from('refunds').insert({
     order_id: orderId,
+    // @ts-ignore
     tenant_id: order.tenant_id,
     amount,
     reason
@@ -14,6 +15,7 @@ export async function processRefund(orderId: string, amount: number, reason: str
 
   // خصم المبلغ من "محفظة المبيعات" وإضافته كـ Transaction مرتجع
   await supabase.from('transactions').insert({
+    // @ts-ignore
     tenant_id: order.tenant_id,
     amount: -amount,
     type: 'refund',

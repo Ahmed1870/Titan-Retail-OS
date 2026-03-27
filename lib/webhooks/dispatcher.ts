@@ -3,10 +3,10 @@ export async function dispatchWebhook(tenantId: string, event: string, payload: 
   // 1. جلب كافة الـ Webhooks النشطة لهذا التاجر
   // ملاحظة: نستخدم fetch لإرسال البيانات بصيغة JSON
   
-  const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/webhooks?tenant_id=eq.${tenantId}&is_active=eq.true`, {
+  const response = await fetch(`${process.env.PROJECT_LINK_FINAL}/rest/v1/webhooks?tenant_id=eq.${tenantId}&is_active=eq.true`, {
     headers: {
-      'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
+      'apikey': process.env.PROJECT_KEY_PRIVATE!,
+      'Authorization': `Bearer ${process.env.PROJECT_KEY_PRIVATE}`
     }
   });
 

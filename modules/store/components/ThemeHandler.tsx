@@ -2,7 +2,7 @@
 
 export default function ThemeHandler({ primaryColor }: { primaryColor: string }) {
   return (
-    <style jsx global>{`
+    <style >{`
       :root {
         --primary-brand: ${primaryColor || '#10b981'};
       }

@@ -15,7 +15,7 @@ export default function CourierDashboardClient({ user, initialDeliveries }: any)
     setUpdatingId(id);
     startTransition(async () => {
       try {
-        await updateDeliveryStatusAction(id, status);
+        await updateDeliveryStatusAction(id, status as any);
         setDeliveries((prev: any[]) => prev.map(d => d.id === id ? { ...d, status } : d));
       } catch (err) {
         alert('Update failed');

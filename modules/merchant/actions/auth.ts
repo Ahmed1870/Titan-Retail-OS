@@ -1,35 +1,21 @@
 import { createClient } from '@/lib/supabase/server';
 
-export type MerchantContext = {
-  tenantId: string;
-  planStatus: string;
-  storeName: string;
-};
-
-export async function getMerchantContextAction(): Promise<{ data?: MerchantContext; error?: string }> {
+export async function verifyMerchant() {
   const supabase = createClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
   
-  if (!session) return { error: 'UNAUTHORIZED' };
-
-  // استعلام ذكي يجلب بيانات المستخدم وحالة متجره في ضربة واحدة
-  const { data: user, error } = await supabase
-    .from('users')
-    .select('tenant_id, role, tenants!users_tenant_id_fkey(plan_status, store_name)')
-    .eq('id', session.user.id)
+  const { data: tenant } = await supabase
+    .from('tenants')
+    .select('*')
+    .eq('owner_id', user.id)
     .single();
 
-  if (error || !user || user.role !== 'merchant') return { error: 'FORBIDDEN' };
-  if (!user.tenant_id || !user.tenants) return { error: 'NO_TENANT' };
+  if (!tenant) throw new Error("Merchant tenant not found");
+  // هنا نرجع user بدلاً من userData لتوافق الكود
+  return { user, userData: user, tenant };
+}
 
-  // استخراج البيانات من العلاقة (Relation)
-  const tenantData = Array.isArray(user.tenants) ? user.tenants[0] : user.tenants;
-
-  return {
-    data: {
-      tenantId: user.tenant_id,
-      planStatus: tenantData.plan_status,
-      storeName: tenantData.store_name,
-    }
-  };
+export async function getMerchantContextAction() {
+  return await verifyMerchant();
 }

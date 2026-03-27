@@ -48,7 +48,7 @@ export async function updateDeliveryStatusAction(orderId: string, status: 'picke
     .from('deliveries')
     .update({ 
       status: status === 'picked_up' ? 'picked_up' : (status === 'delivered' ? 'delivered' : 'failed'),
-      delivered_at: status === 'delivered' ? new NOW() : null 
+      delivered_at: status === 'delivered' ? new Date() : null 
     })
     .eq('order_id', orderId)
     .eq('courier_id', session.user.id);

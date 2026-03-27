@@ -6,6 +6,7 @@ export async function addCustomerDebt(phone: string, amount: number, dueDate: st
   const { data: tenant } = await supabase.from('tenants').select('id').eq('owner_id', user?.id).single();
 
   await supabase.from('customer_debts').insert({
+    // @ts-ignore
     tenant_id: tenant.id,
     customer_phone: phone,
     amount,

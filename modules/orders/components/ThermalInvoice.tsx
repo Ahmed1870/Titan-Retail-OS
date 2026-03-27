@@ -46,7 +46,7 @@ export default function ThermalInvoice({ order, storeName }: { order: any, store
         </div>
       </div>
 
-      <style jsx global>{`
+      <style >{`
         @media print {
           body * { visibility: hidden; }
           #printable-receipt, #printable-receipt * { visibility: visible; }

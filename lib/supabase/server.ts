@@ -1,40 +1,28 @@
-import { createServerClient as supabaseSSR, type CookieOptions } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 
-// 1. الدالة الأساسية للمستخدمين (تتعامل مع الكوكيز والـ Session)
-export const createClient = () => {
+export function createClient() {
   const cookieStore = cookies()
-  return supabaseSSR(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  return createServerClient(
+    process.env.PROJECT_LINK_FINAL!,
+    process.env.PROJECT_KEY_PUBLIC!,
     {
       cookies: {
-        get(name: string) { return cookieStore.get(name)?.value },
-        set(name: string, value: string, options: CookieOptions) { 
-          try { cookieStore.set({ name, value, ...options }) } catch (e) {} 
-        },
-        remove(name: string, options: CookieOptions) { 
-          try { cookieStore.set({ name, value: '', ...options }) } catch (e) {} 
+        getAll() { return cookieStore.getAll() },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
+          } catch {}
         },
       },
     }
   )
 }
 
-// 2. محول الـ Admin والـ Middleware (لحل مشكلة الـ 63 ملف)
-export const createServerClient = createClient;
-
-// 3. محول الـ Services (لحل مشكلة الـ 18 ملف - مع صلاحيات كاملة)
-// ملاحظة: هنا نستخدم الـ SERVICE_ROLE_KEY لتجاوز الـ RLS في العمليات الخلفية
-export const createServiceClient = () => {
-  return supabaseSSR(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!, // التأكد من وجود هذا المتغير في Vercel
-    { cookies: {} } // السيرفس لا تحتاج كوكيز لأنها تعمل برمز برمجى
+export function createServiceClient() {
+  return createSupabaseClient(
+    process.env.PROJECT_LINK_FINAL!,
+    process.env.PROJECT_KEY_PRIVATE!
   )
 }
-
-// 4. دعم المدرسة القديمة (Route Handlers)
-export const createRouteHandlerClient = ({ cookies }: { cookies: any }) => createClient();
-
-export default createClient;

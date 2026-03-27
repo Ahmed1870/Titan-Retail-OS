@@ -1,3 +1,4 @@
+import { createClient } from "@/lib/supabase/server";
 export async function validateCoupon(code: string, tenantId: string) {
   const supabase = createClient();
   const { data, error } = await supabase

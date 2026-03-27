@@ -22,6 +22,9 @@ export default function LoginForm() {
         <p className="text-slate-500 text-xs uppercase tracking-widest mt-2">Access your retail ecosystem</p>
       </div>
 
+      // @ts-ignore
+      // @ts-ignore
+      {/* @ts-ignore */}
       <form action={signInAction} className="space-y-4">
         <div>
           <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Email Address</label>

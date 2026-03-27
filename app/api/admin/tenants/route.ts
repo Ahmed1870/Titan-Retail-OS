@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@/lib/middleware';
+import { withAuth } from '';
 import { createServerClient } from '@/lib/supabase/server';
 
 export const GET = withAuth(['admin'], async (req: NextRequest) => {

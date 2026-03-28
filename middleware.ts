@@ -6,29 +6,20 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
   const supabase = createMiddlewareClient({ req, res })
 
+  // جلب الجلسة فقط (بدون استعلامات قاعدة بيانات ثقيلة)
   const { data: { session } } = await supabase.auth.getSession()
 
-  // إذا كان المستخدم مسجل دخول ويحاول الوصول لصفحة الهبوط أو Login
-  if (session && (req.nextUrl.pathname === '/' || req.nextUrl.pathname.startsWith('/auth'))) {
-    const { data: profile } = await supabase
-      .from('users')
-      .select('tenant_id, role')
-      .eq('id', session.user.id)
-      .single()
+  const isAuthPage = req.nextUrl.pathname.startsWith('/auth')
+  const isDashboardPage = req.nextUrl.pathname.startsWith('/merchant') || req.nextUrl.pathname.startsWith('/admin')
 
-    // توجيه ذكي بناءً على الدور
-    if (profile?.role === 'merchant') {
-      return NextResponse.redirect(new URL('/merchant/dashboard', req.url))
-    } else if (profile?.role === 'admin') {
-      return NextResponse.redirect(new URL('/admin', req.url))
-    }
-  }
-
-  // حماية المسارات الحساسة
-  if (!session && (req.nextUrl.pathname.startsWith('/merchant') || req.nextUrl.pathname.startsWith('/admin'))) {
+  // 1. إذا لم يكن هناك جلسة ويحاول دخول الداشبورد -> وجهه للـ Login
+  if (!session && isDashboardPage) {
     return NextResponse.redirect(new URL('/auth/login', req.url))
   }
 
+  // 2. إذا كان هناك جلسة ويحاول دخول صفحات Auth -> اترك التوجيه للـ Client أو صفحة الدخول نفسها لتجنب ثقل الميدل وير
+  // أو وجهه لصفحة وسيطة /check-role
+  
   return res
 }
 

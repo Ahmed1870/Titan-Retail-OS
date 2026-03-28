@@ -1,9 +1,0 @@
-import ForgotPasswordForm from '@/modules/auth/components/ForgotPasswordForm';
-
-export default function ForgotPasswordPage() {
-  return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-6">
-      <ForgotPasswordForm />
-    </div>
-  );
-}

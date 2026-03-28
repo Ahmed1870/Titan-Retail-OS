@@ -1,6 +1,7 @@
 "use client";
 "use client";
 "use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import Toast from "/modules/shared/components/Toast";

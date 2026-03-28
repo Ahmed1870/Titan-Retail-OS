@@ -1,3 +1,4 @@
+"use client";
 'use client';
 
 export default function ThemeHandler({ primaryColor }: { primaryColor: string }) {

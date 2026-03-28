@@ -1,3 +1,4 @@
+"use client";
 'use client';
 
 export default function ThermalInvoice({ order, storeName }: { order: any, storeName: string }) {

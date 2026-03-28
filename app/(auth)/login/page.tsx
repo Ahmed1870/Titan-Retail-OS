@@ -1,8 +1,12 @@
 "use client";
 "use client";
+"use client";
+"use client";
+"use client";
+"use client";
 
 import { useState, useEffect } from "react";
-import Toast from "/modules/shared/components/Toast";
+import Toast from "./modules/shared/components/Toast";
 import LoginForm from '@/modules/auth/components/LoginForm';
 export default function LoginPage() {
 const [toast, setToast] = useState<{msg:string,type:"success"|"error"}|null>(null); 

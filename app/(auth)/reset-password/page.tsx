@@ -1,8 +1,12 @@
 "use client";
 "use client";
+"use client";
+"use client";
+"use client";
+"use client";
 
 import { useState, useEffect } from "react";
-import Toast from "/modules/shared/components/Toast";
+import Toast from "./modules/shared/components/Toast";
 import ResetPasswordForm from '@/modules/auth/components/ResetPasswordForm';
 export default function ResetPasswordPage() {
 const [toast, setToast] = useState<{msg:string,type:"success"|"error"}|null>(null); 

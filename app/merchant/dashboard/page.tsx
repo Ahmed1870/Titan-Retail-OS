@@ -1,3 +1,4 @@
+"use client";
 import { Suspense } from 'react';
 import GlobalStats from '@/modules/admin/superadmin/components/GlobalStats';
 import MerchantTable from '@/modules/admin/superadmin/components/MerchantTable';

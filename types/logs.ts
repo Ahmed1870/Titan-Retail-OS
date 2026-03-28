@@ -1,3 +1,4 @@
+"use client";
 export interface SystemLog {
   id: string;
   tenant_id: string;

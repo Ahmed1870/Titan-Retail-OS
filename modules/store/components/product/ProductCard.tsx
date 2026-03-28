@@ -1,3 +1,4 @@
+"use client";
 'use client';
 import { useCart } from '@/modules/store/cart/hooks/useCart';
 

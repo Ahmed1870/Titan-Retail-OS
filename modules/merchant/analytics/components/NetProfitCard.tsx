@@ -1,3 +1,4 @@
+"use client";
 export default function NetProfitCard({ netProfit }: { netProfit: number }) {
   return (
     <div className="bg-gradient-to-br from-emerald-900/20 to-slate-900 border border-emerald-500/30 p-6 rounded-3xl">

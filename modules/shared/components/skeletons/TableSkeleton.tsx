@@ -1,3 +1,4 @@
+"use client";
 export default function TableSkeleton() {
   return (
     <div className="w-full space-y-4 animate-pulse">

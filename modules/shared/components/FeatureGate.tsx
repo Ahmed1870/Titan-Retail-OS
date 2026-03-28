@@ -1,3 +1,4 @@
+"use client";
 import { usePlanAccess } from '@/modules/auth/hooks/usePlanAccess';
 import { ReactNode } from 'react';
 

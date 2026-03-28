@@ -1,3 +1,4 @@
+"use client";
 export default function StatsOverview({ summary }: { summary: any }) {
   const cards = [
     { label: 'Total Sales', value: `${summary.totalSales} EGP`, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },

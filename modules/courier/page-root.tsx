@@ -1,3 +1,4 @@
+"use client";
 import { getAvailableOrdersAction } from '@/modules/courier/actions/deliveries';
 import CourierDashboardClient from '@/modules/courier/components/CourierDashboardClient';
 import { createClient } from '@/lib/supabase/server';

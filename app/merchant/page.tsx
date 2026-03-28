@@ -1,3 +1,4 @@
+"use client";
 import MerchantPageRoot from '@/modules/merchant/page-root';
 
 export default function MerchantPage() {

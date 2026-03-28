@@ -1,3 +1,4 @@
+"use client";
 'use client';
 
 export default function PlanDistribution({ distribution }: { distribution: Record<string, number> }) {

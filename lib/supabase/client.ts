@@ -6,3 +6,5 @@ export function createClient() {
     process.env.PROJECT_KEY_PUBLIC!
   )
 }
+
+export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);

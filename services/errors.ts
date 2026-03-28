@@ -1,47 +1,14 @@
-// services/errors.ts
-
-export class ServiceError extends Error {
-  constructor(
-    public readonly code: string,
-    message: string
-  ) {
+export class AppError extends Error {
+  constructor(public message: string, public code: string, public status: number = 400) {
     super(message);
-    this.name = 'ServiceError';
   }
 }
 
-export const ERROR_CODES = {
-  // Auth
-  UNAUTHORIZED: 'UNAUTHORIZED',
-  FORBIDDEN: 'FORBIDDEN',
-  // Validation
-  VALIDATION_ERROR: 'VALIDATION_ERROR',
-  // Orders
-  ORDER_CREATE_FAILED: 'ORDER_CREATE_FAILED',
-  ORDER_NOT_FOUND: 'ORDER_NOT_FOUND',
-  ORDER_STATUS_UPDATE_FAILED: 'ORDER_STATUS_UPDATE_FAILED',
-  INVALID_STATUS_TRANSITION: 'INVALID_STATUS_TRANSITION',
-  COURIER_ASSIGN_FAILED: 'COURIER_ASSIGN_FAILED',
-  // Inventory
-  INSUFFICIENT_STOCK: 'INSUFFICIENT_STOCK',
-  INVENTORY_NOT_FOUND: 'INVENTORY_NOT_FOUND',
-  INVENTORY_UPDATE_FAILED: 'INVENTORY_UPDATE_FAILED',
-  // Subscriptions
-  SUB_REQUEST_FAILED: 'SUB_REQUEST_FAILED',
-  DUPLICATE_REQUEST: 'DUPLICATE_REQUEST',
-  APPROVAL_FAILED: 'APPROVAL_FAILED',
-  REJECTION_FAILED: 'REJECTION_FAILED',
-  AUTO_MODE_DISABLED: 'AUTO_MODE_DISABLED',
-  // Referrals
-  INVALID_REFERRAL_CODE: 'INVALID_REFERRAL_CODE',
-  SELF_REFERRAL: 'SELF_REFERRAL',
-  REFERRAL_CREATE_FAILED: 'REFERRAL_CREATE_FAILED',
-  // Payments
-  WALLET_FETCH_FAILED: 'WALLET_FETCH_FAILED',
-  TRANSACTIONS_FETCH_FAILED: 'TRANSACTIONS_FETCH_FAILED',
-  // Products
-  PRODUCT_NOT_FOUND: 'PRODUCT_NOT_FOUND',
-  PRODUCT_CREATE_FAILED: 'PRODUCT_CREATE_FAILED',
-  // Idempotency
-  ALREADY_PROCESSED: 'ALREADY_PROCESSED',
-} as const;
+export const handleApiError = (error: any) => {
+  console.error(`[Error ${error.code}]: `, error.message);
+  return {
+    success: false,
+    message: error.message || 'حدث خطأ غير متوقع',
+    code: error.code || 'UNKNOWN_ERROR'
+  };
+};

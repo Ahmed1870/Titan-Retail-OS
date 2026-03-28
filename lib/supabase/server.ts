@@ -1,28 +1,14 @@
-import { createServerClient } from '@supabase/ssr'
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
+import { createCookieClientServer } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 
-export function createClient() {
-  const cookieStore = cookies()
-  return createServerClient(
-    process.env.PROJECT_LINK_FINAL!,
-    process.env.PROJECT_KEY_PUBLIC!,
-    {
-      cookies: {
-        getAll() { return cookieStore.getAll() },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-          } catch {}
-        },
-      },
+export const supabase = createCookieClientServer({ cookies });
+
+// استخدام الـ Private Key للعمليات الحساسة (Admin Logic)
+export const supabaseAdmin = createCookieClientServer({ 
+  cookies,
+  options: {
+    global: {
+      headers: { 'Authorization': `Bearer ${process.env.PROJECT_KEY_PRIVATE}` }
     }
-  )
-}
-
-export function createServiceClient() {
-  return createSupabaseClient(
-    process.env.PROJECT_LINK_FINAL!,
-    process.env.PROJECT_KEY_PRIVATE!
-  )
-}
+  }
+});

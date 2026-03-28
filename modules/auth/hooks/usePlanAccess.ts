@@ -1,14 +1,13 @@
-import { PLAN_LIMITS, PlanType } from '@/lib/config/plans';
+import { PLANS } from '@/config/plans'
 
-export function usePlanAccess(currentPlan: PlanType) {
-  const limits = PLAN_LIMITS[currentPlan];
-
-  return {
-    canAccessAnalytics: limits.can_access_analytics,
-    canCustomBrand: limits.can_custom_brand,
-    maxStaff: limits.max_staff,
-    maxProducts: limits.max_products,
-    // وظيفة للتحقق السريع من أي ميزة
-    hasAccess: (feature: keyof typeof limits) => !!limits[feature]
+export const usePlanAccess = (planName: string) => {
+  const planLevels = { 'FREE': 0, 'PRO': 1, 'ENTERPRISE': 2 };
+  
+  const canAccess = (requiredPlan: keyof typeof planLevels) => {
+    const currentLevel = planLevels[planName as keyof typeof planLevels] || 0;
+    const requiredLevel = planLevels[requiredPlan];
+    return currentLevel >= requiredLevel;
   };
-}
+
+  return { canAccess, plan: planName };
+};

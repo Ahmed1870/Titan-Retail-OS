@@ -1,36 +1,40 @@
 'use client';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase/client';
 
-export default function FinancialHealth({ data }: { data: any }) {
-  const isAlert = data.discrepancy > 0;
+export default function FinancialHealth({ tenantId }: { tenantId: string }) {
+  const [stats, setStats] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      const { data } = await supabase
+        .from('platform_global_metrics')
+        .select('*')
+        .eq('tenant_id', tenantId)
+        .single();
+      setStats(data);
+    };
+    fetchStats();
+  }, [tenantId]);
+
+  if (!stats) return <div className="animate-pulse bg-gray-100 h-32 rounded-xl" />;
 
   return (
-    <div className={`p-6 rounded-3xl border ${isAlert ? 'border-rose-500/50 bg-rose-500/5' : 'border-emerald-500/50 bg-emerald-500/5'}`}>
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-white font-black text-sm uppercase tracking-widest">Financial Reconciliation</h3>
-        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${isAlert ? 'bg-rose-500 text-white' : 'bg-emerald-500 text-white'}`}>
-          {data.status}
-        </span>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
+      <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+        <p className="text-sm text-gray-500 mb-1">إجمالي المبيعات</p>
+        <h3 className="text-2xl font-bold text-green-600">{stats.total_revenue} ج.م</h3>
       </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <p className="text-[10px] text-slate-500 uppercase font-bold mb-1">Expected Sales</p>
-          <p className="text-xl font-black text-white">{data.expected} EGP</p>
-        </div>
-        <div>
-          <p className="text-[10px] text-slate-500 uppercase font-bold mb-1">Actual Cash</p>
-          <p className="text-xl font-black text-white">{data.actual} EGP</p>
-        </div>
+      <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+        <p className="text-sm text-gray-500 mb-1">عدد الطلبات</p>
+        <h3 className="text-2xl font-bold text-blue-600">{stats.total_orders} طلب</h3>
       </div>
-
-      {isAlert && (
-        <div className="mt-6 p-4 bg-rose-500/20 border border-rose-500/50 rounded-2xl flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-rose-500 flex items-center justify-center text-white font-bold">!</div>
-          <p className="text-xs text-rose-200 font-bold">
-            Discrepancy detected: -{data.discrepancy} EGP missing from vault!
-          </p>
-        </div>
-      )}
+      <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+        <p className="text-sm text-gray-500 mb-1">متوسط قيمة الطلب</p>
+        <h3 className="text-2xl font-bold text-purple-600">
+          {stats.total_orders > 0 ? (stats.total_revenue / stats.total_orders).toFixed(2) : 0} ج.م
+        </h3>
+      </div>
     </div>
   );
 }

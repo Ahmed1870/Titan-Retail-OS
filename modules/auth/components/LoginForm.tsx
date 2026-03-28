@@ -1,54 +1,29 @@
-"use client";
-
+'use client';
 import { useState } from 'react';
 import { signInAction } from '@/modules/auth/actions/signIn';
+import Toast from '@/modules/shared/components/Toast';
 
 export default function LoginForm() {
-  const [error, setError] = useState<string | null>(null);
+  const [err, setErr] = useState('');
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(formData: FormData) {
+  async function handle(formData: FormData) {
     setLoading(true);
-    setError(null);
-    try {
-      const result = await signInAction(formData);
-      if (result?.error) {
-        setError(result.error);
-      }
-    } catch (e) {
-      setError("حدث خطأ غير متوقع");
-    } finally {
-      setLoading(false);
-    }
+    const res = await signInAction(formData);
+    if (res?.error) { setErr(res.error); setLoading(false); }
   }
 
   return (
-    <div className="w-full max-w-md p-8 bg-zinc-900 rounded-lg shadow-xl border border-zinc-800">
-      <h2 className="text-2xl font-bold text-white mb-6 text-center">تسجيل الدخول - تايتان</h2>
-      <form action={handleSubmit} className="space-y-4">
-        {error && <div className="p-3 bg-red-500/10 border border-red-500 text-red-500 text-sm rounded">{error}</div>}
-        <input 
-          name="email" 
-          type="email" 
-          placeholder="البريد الإلكتروني" 
-          required 
-          className="w-full p-3 bg-zinc-800 border border-zinc-700 text-white rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <input 
-          name="password" 
-          type="password" 
-          placeholder="كلمة المرور" 
-          required 
-          className="w-full p-3 bg-zinc-800 border border-zinc-700 text-white rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button 
-          type="submit" 
-          disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded transition duration-200 disabled:opacity-50"
-        >
-          {loading ? "جاري الدخول..." : "دخول"}
+    <div className="w-full max-w-md p-8 bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl">
+      <h2 className="text-2xl font-black text-white mb-6 text-center italic">TITAN LOGIN</h2>
+      <form action={handle} className="space-y-4">
+        <input name="email" type="email" placeholder="البريد الإلكتروني" required className="w-full p-4 bg-black border border-zinc-800 text-white rounded-xl focus:border-blue-500 outline-none" />
+        <input name="password" type="password" placeholder="كلمة المرور" required className="w-full p-4 bg-black border border-zinc-800 text-white rounded-xl focus:border-blue-500 outline-none" />
+        <button disabled={loading} className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all">
+          {loading ? "جاري الدخول..." : "تسجيل الدخول"}
         </button>
       </form>
+      {err && <Toast message={err} onClose={() => setErr('')} />}
     </div>
   );
 }

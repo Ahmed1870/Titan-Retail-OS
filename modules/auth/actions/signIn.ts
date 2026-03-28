@@ -1,5 +1,4 @@
-"use server";
-
+'use server';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 
@@ -8,15 +7,18 @@ export async function signInAction(formData: FormData) {
   const password = formData.get('password') as string;
   const supabase = createClient();
 
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) return { error: "خطأ في البريد أو كلمة المرور" };
 
-  if (error) {
-    return { error: error.message };
-  }
+  const { data: userProfile } = await supabase
+    .from('users')
+    .select('role, tenant_id')
+    .eq('id', data.user.id)
+    .single();
 
-  // التوجيه يتم من السيرفر بنجاح
-  redirect('/dashboard'); 
+  if (!userProfile) return { error: "لم يتم العثور على ملف تعريف لهذا الحساب" };
+
+  if (userProfile.role === 'admin') redirect('/admin');
+  if (userProfile.role === 'merchant') redirect('/merchant/dashboard');
+  redirect('/');
 }

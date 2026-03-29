@@ -14,7 +14,7 @@ export default function LandingPage() {
           <Link href="/auth/login" className="px-5 py-2 text-sm font-medium hover:text-blue-400 transition-colors">
             {lang === 'ar' ? 'تسجيل الدخول' : 'Login'}
           </Link>
-          <Link href="/auth/register" className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-sm font-bold shadow-lg shadow-blue-500/20 transition-all transform hover:scale-105">
+          <Link href="/auth/signup" className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-sm font-bold shadow-lg shadow-blue-500/20 transition-all transform hover:scale-105">
             {lang === 'ar' ? 'ابدأ الآن مجاناً' : 'Get Started'}
           </Link>
         </div>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from "react";
-import Toast from "./modules/shared/components/Toast";
+import Toast from "@/modules/shared/components/Toast";
 import SignUpForm from '@/modules/auth/components/SignUpForm';
 export default function SignUpPage() {
 const [toast, setToast] = useState<{msg:string,type:"success"|"error"}|null>(null); 

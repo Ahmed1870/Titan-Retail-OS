@@ -1,5 +1,4 @@
-"use client";
-'use client';
+'use client'
 import { motion } from 'framer-motion';
 import { BarChart3, Users, Package, TrendingUp, Bell, Settings } from 'lucide-react';
 

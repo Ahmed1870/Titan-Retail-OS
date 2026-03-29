@@ -1,4 +1,4 @@
-"use client";
+'use client'
 import { getPendingTenantsAction } from '@/modules/admin/actions/tenants';
 import DashboardClient from '@/modules/admin/components/DashboardClient';
 import { redirect } from 'next/navigation';

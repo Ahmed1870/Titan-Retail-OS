@@ -1,5 +1,4 @@
-"use client";
-'use client';
+'use client'
 export default function ShiftManager({ currentCash }: { currentCash: number }) {
   return (
     <div className="p-6 bg-[#0f171a] border border-slate-800 rounded-3xl">

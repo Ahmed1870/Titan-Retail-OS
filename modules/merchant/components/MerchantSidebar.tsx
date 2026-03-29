@@ -1,4 +1,4 @@
-"use client";
+'use client'
 import { usePlanAccess } from '../hooks/usePlanAccess'
 import Link from 'next/link'
 

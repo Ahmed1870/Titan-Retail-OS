@@ -1,5 +1,4 @@
-"use client";
-'use client';
+'use client'
 import { useState } from 'react';
 import { processOrderAction } from '../actions/processOrder';
 import { useCart } from '@/modules/store/cart/hooks/useCart';

@@ -1,4 +1,4 @@
-"use client";
+'use client'
 export default function MerchantTable({ tenants }: any) {
   return (
     <div className="bg-[#0f171a] border border-slate-800 rounded-3xl overflow-hidden">

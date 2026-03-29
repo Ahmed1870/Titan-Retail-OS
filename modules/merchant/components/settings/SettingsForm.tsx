@@ -1,5 +1,4 @@
-"use client";
-'use client';
+'use client'
 import { useState } from 'react';
 import { updateSettingsAction } from '@/modules/merchant/actions/settings';
 

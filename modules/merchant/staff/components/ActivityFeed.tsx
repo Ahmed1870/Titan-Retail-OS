@@ -1,5 +1,4 @@
-"use client";
-'use client';
+'use client'
 
 export default function ActivityFeed({ logs }: { logs: any[] }) {
   return (

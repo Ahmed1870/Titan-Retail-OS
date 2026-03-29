@@ -1,5 +1,4 @@
-"use client";
-'use client';
+'use client'
 import { useLang } from '@/context/LanguageContext';
 import { Globe } from 'lucide-react';
 

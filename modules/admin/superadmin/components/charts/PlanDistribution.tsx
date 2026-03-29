@@ -1,5 +1,4 @@
-"use client";
-'use client';
+'use client'
 
 export default function PlanDistribution({ distribution }: { distribution: Record<string, number> }) {
   const total = Object.values(distribution).reduce((a, b) => a + b, 0);

@@ -1,5 +1,4 @@
-"use client";
-'use client';
+'use client'
 
 export default function GlobalStats({ metrics }: any) {
   const cards = [

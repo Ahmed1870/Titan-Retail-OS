@@ -1,5 +1,4 @@
-"use client";
-'use client';
+'use client'
 import { useState, useTransition } from 'react';
 import { updateDeliveryStatusAction } from '../actions/deliveries';
 

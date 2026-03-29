@@ -1,4 +1,3 @@
-"use client";
 import './globals.css';
 import { LanguageProvider } from '@/context/LanguageContext';
 

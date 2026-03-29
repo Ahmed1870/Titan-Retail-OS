@@ -1,4 +1,4 @@
-"use client";
+'use client'
 export default function StoreMainPage() {
   return (
     <div style={{ minHeight: '100vh', background: '#080c14', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontFamily: 'Inter, sans-serif' }}>

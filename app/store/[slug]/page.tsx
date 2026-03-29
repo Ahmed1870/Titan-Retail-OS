@@ -1,4 +1,3 @@
-"use client";
 import { getStoreDataAction } from '@/modules/store/actions';
 import { notFound } from 'next/navigation';
 

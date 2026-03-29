@@ -1,5 +1,4 @@
-"use client";
-'use client';
+'use client'
 import { useState } from 'react';
 import { forgotPasswordAction } from '@/modules/auth/actions';
 import Toast from '@/modules/shared/components/Toast';

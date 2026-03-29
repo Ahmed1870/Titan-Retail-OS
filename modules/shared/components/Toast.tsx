@@ -1,11 +1,4 @@
-"use client";
-"use client";
-"use client";
-"use client";
-"use client";
-"use client";
-"use client";
-'use client';
+'use client'
 import { useEffect } from 'react';
 
 export default function Toast({ message, type = 'error', onClose }: { message: string, type?: 'error' | 'success', onClose: () => void }) {

@@ -1,5 +1,4 @@
-"use client";
-'use client';
+'use client'
 
 export default function PlanUsageGuard({ current, limit, label }: { current: number, limit: number, label: string }) {
   const usagePercent = (current / limit) * 100;

@@ -1,26 +1,54 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(req: NextRequest) {
-  try {
-    const res = NextResponse.next()
-    const supabase = createMiddlewareClient({ req, res })
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  })
 
-    const { data: { user } } = await supabase.auth.getUser()
-
-    const isDashboardPage =
-      req.nextUrl.pathname.startsWith('/merchant') ||
-      req.nextUrl.pathname.startsWith('/admin')
-
-    if (!user && isDashboardPage) {
-      return NextResponse.redirect(new URL('/auth/login', req.url))
+  const supabase = createServerClient(
+    process.env.PROJECT_LINK_FINAL!,
+    process.env.PROJECT_KEY_PUBLIC!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          request.cookies.set({ name, value, ...options })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set({ name, value, ...options })
+        },
+        remove(name: string, options: CookieOptions) {
+          request.cookies.set({ name, value: '', ...options })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set({ name, value: '', ...options })
+        },
+      },
     }
+  )
 
-    return res
-  } catch (e) {
-    return NextResponse.next()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const isDashboardPage = 
+    request.nextUrl.pathname.startsWith('/merchant') || 
+    request.nextUrl.pathname.startsWith('/admin')
+
+  if (!user && isDashboardPage) {
+    return NextResponse.redirect(new URL('/auth/login', request.url))
   }
+
+  return response
 }
 
 export const config = {

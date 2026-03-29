@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
-import { PLAN_LIMITS, PlanType } from '@/lib/config/plans';
+import { PLAN_LIMITS, PlanType } from '@/config/plans';
 
 export async function getStoreMetadata(slug: string) {
   const supabase = createClient();

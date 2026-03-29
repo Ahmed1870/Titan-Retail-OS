@@ -7,4 +7,5 @@ export function createClient() {
   )
 }
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+// التصدير الصحيح بدون تمرير متغيرات غير موجودة
+export const supabase = createClient();

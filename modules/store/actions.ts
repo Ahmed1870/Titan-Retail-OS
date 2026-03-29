@@ -1,33 +1,35 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server';
 
 export async function getStoreDataAction(slug: string) {
-  const supabase = createClient()
-  const { data: tenant, error } = await supabase
+  const supabase = createClient();
+
+  // 1. جلب بيانات المتجر من الـ Slug
+  const { data: tenant, error: tenantError } = await supabase
     .from('tenants')
     .select('id, store_name, logo_url, settings, plan_status')
     .eq('slug', slug)
-    .single()
+    .single();
 
-  if (error || !tenant) return { error: 'STORE_NOT_FOUND' }
-  if (tenant.plan_status !== 'active') return { error: 'STORE_INACTIVE' }
+  if (tenantError || !tenant) return { error: 'STORE_NOT_FOUND' };
+  if (tenant.plan_status !== 'active') return { error: 'STORE_INACTIVE' };
 
-  const { data: products } = await supabase
+  // 2. جلب المنتجات المتاحة فقط لهذا المتجر
+  const { data: products, error: prodError } = await supabase
     .from('products')
     .select('*, inventory(quantity)')
     .eq('tenant_id', tenant.id)
     .eq('is_active', true)
-    .is('deleted_at', null)
-    .order('created_at', { ascending: false })
+    .order('created_at', { ascending: false });
+
+  if (prodError) return { error: prodError.message };
 
   return {
     data: {
       tenant,
-      products: (products ?? []).map((p: any) => ({
+      products: products.map(p => ({
         ...p,
-        stock: Array.isArray(p.inventory)
-          ? p.inventory[0]?.quantity ?? 0
-          : p.inventory?.quantity ?? 0
+        stock: Array.isArray(p.inventory) ? p.inventory[0]?.quantity : p.inventory?.quantity || 0
       }))
     }
-  }
+  };
 }

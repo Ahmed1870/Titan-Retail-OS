@@ -1,4 +1,5 @@
 'use client'
+'use client'
 import React, { useState, useTransition } from 'react';
 import { useNotifications, useRealtimeSubscriptions } from '@/hooks/useNotifications';
 

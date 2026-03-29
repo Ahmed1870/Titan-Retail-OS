@@ -1,4 +1,3 @@
-'use client'
 import { getMerchantContextAction } from '@/modules/merchant/actions/auth';
 
 export default async function MerchantRootLayout({ children }: { children: React.ReactNode }) {

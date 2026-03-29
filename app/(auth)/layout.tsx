@@ -1,4 +1,3 @@
-'use client'
 import { useState } from 'react';
 import LoginForm from '@/modules/auth/components/LoginForm';
 import SignUpForm from '@/modules/auth/components/SignUpForm';

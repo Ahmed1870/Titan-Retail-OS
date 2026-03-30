@@ -8,10 +8,27 @@ export default function SignUpForm() {
   const [toast, setToast] = useState<{msg: string, type: 'error' | 'success'} | null>(null);
   const [isPending, setIsPending] = useState(false);
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (isPending) return;
+    
     setIsPending(true);
-    const result = await signUpAction(formData);
-    if (result?.error) { setToast({ msg: result.error, type: 'error' }); setIsPending(false); }
+    setToast(null);
+    
+    const formData = new FormData(e.currentTarget);
+    
+    try {
+      const result = await signUpAction(formData);
+      // لو فيه خطأ راجع من السيرفر (زي إيميل مكرر)
+      if (result?.error) {
+        setToast({ msg: result.error, type: 'error' });
+        setIsPending(false);
+      }
+    } catch (error: any) {
+      // في Next.js، الـ redirect بيترمي هنا كخطأ. 
+      // لو الكود وصل هنا ومفيش result.error، غالباً السيستم بيعمل redirect حالاً.
+      // مش هنقفل الـ pending عشان اليوزر ميفتكرش إن العملية فشلت وهي بتحول.
+    }
   }
 
   return (
@@ -27,7 +44,7 @@ export default function SignUpForm() {
           <div className="text-[10px] font-mono text-blue-500 border border-blue-500/20 px-2 py-1 rounded">v3.0.1</div>
         </div>
 
-        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(new FormData(e.currentTarget)); }} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-2">الهوية الكاملة</label>
             <input name="full_name" type="text" required placeholder="أحمد محمد" className="input-premium" />
@@ -44,8 +61,15 @@ export default function SignUpForm() {
             <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-2">مفتاح الوصول</label>
             <input name="password" type="password" required placeholder="••••••••" className="input-premium" />
           </div>
-          <button disabled={isPending} className="md:col-span-2 mt-6 py-5 bg-white text-black font-black rounded-2xl hover:shadow-[0_0_50px_rgba(255,255,255,0.15)] transition-all active:scale-[0.98] disabled:opacity-50 text-lg uppercase tracking-wider">
-            {isPending ? "جاري تهيئة النظام..." : "تفعيل الحساب الآن"}
+          <button 
+            type="submit"
+            disabled={isPending} 
+            className="md:col-span-2 mt-6 py-5 bg-white text-black font-black rounded-2xl hover:shadow-[0_0_50px_rgba(255,255,255,0.15)] transition-all active:scale-[0.98] disabled:opacity-50 text-lg uppercase tracking-wider overflow-hidden relative group"
+          >
+            <span className="relative z-10">{isPending ? "جاري تهيئة النظام..." : "تفعيل الحساب الآن"}</span>
+            {isPending && (
+              <div className="absolute inset-0 bg-zinc-200 animate-pulse"></div>
+            )}
           </button>
         </form>
 

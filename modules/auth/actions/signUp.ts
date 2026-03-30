@@ -9,9 +9,12 @@ export async function signUpAction(formData: FormData) {
   const storeName = formData.get('store_name') as string;
   const supabase = createClient();
 
-  const { data: existing } = await supabase.from('users').select('id').eq('email', email).single();
+  // 1. التأكد من عدم وجود المستخدم مسبقاً
+  const { data: existing, error: findError } = await supabase.from('users').select('id').eq('email', email).maybeSingle();
+  if (findError) return { error: findError.message };
   if (existing) return { error: "هذا الحساب موجود بالفعل، سجل دخولك." };
 
+  // 2. إنشاء الحساب في جدول الـ Auth (Supabase Auth)
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,
@@ -20,17 +23,27 @@ export async function signUpAction(formData: FormData) {
 
   if (authError) return { error: authError.message };
 
-  if (authData.user) {
-    const { data: tenant } = await supabase.from('tenants').insert([{ name: storeName }]).select().single();
+  // 3. (أهم خطوة) التأكد من نجاح الـ Auth Data، وإنشاء المتجر والمستخدم
+  if (authData?.user) {
+    // أنشئ المتجر الأول
+    const { data: tenant, error: tenantError } = await supabase.from('tenants').insert([{ name: storeName }]).select().single();
+    if (tenantError) return { error: "فشل إنشاء المتجر: " + tenantError.message };
+
     if (tenant) {
-      await supabase.from('users').insert([{
+      // أنشئ المستخدم واربطه بالمتجر
+      const { error: userInsertError } = await supabase.from('users').insert([{
         id: authData.user.id,
         email,
         full_name: fullName,
         tenant_id: tenant.id,
         role: 'merchant'
       }]);
+      
+      // إذا فشل الـ Insert في Users، نرجع خطأ ولا ننتظر الـ Redirect
+      if (userInsertError) return { error: "فشل إنشاء المستخدم في البيانات: " + userInsertError.message };
     }
   }
+
+  // 4. لا يحدث الـ Redirect إلا بعد نجاح كل الخطوات أعلاه
   redirect('/auth/signup/success');
 }

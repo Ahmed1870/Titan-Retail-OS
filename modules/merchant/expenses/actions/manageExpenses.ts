@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 export async function addExpenseAction(amount: number, category: string, description: string) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const { data: tenant } = await supabase.from('tenants').select('id').eq('owner_id', user?.id).single();
+  const { data: tenant } = await supabase.from('tenants').select('id, store_name').eq('owner_id', user?.id).single();
 
   await supabase.from('expenses').insert({
     // @ts-ignore

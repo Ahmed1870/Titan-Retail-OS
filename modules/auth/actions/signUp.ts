@@ -9,12 +9,10 @@ export async function signUpAction(formData: FormData) {
   const storeName = formData.get('store_name') as string;
   const supabase = createClient();
 
-  // 1. التأكد من عدم وجود المستخدم مسبقاً
-  const { data: existing, error: findError } = await supabase.from('users').select('id').eq('email', email).maybeSingle();
-  if (findError) return { error: findError.message };
-  if (existing) return { error: "هذا الحساب موجود بالفعل، سجل دخولك." };
+  // توليد slug بسيط من اسم المتجر
+  const slug = storeName.toLowerCase().replace(/\s+/g, '-') + '-' + Math.random().toString(36).substring(2, 7);
 
-  // 2. إنشاء الحساب في جدول الـ Auth (Supabase Auth)
+  // 1. إنشاء الحساب في Supabase Auth
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,
@@ -23,14 +21,21 @@ export async function signUpAction(formData: FormData) {
 
   if (authError) return { error: authError.message };
 
-  // 3. (أهم خطوة) التأكد من نجاح الـ Auth Data، وإنشاء المتجر والمستخدم
   if (authData?.user) {
-    // أنشئ المتجر الأول
-    const { data: tenant, error: tenantError } = await supabase.from('tenants').insert([{ name: storeName }]).select().single();
+    // 2. إنشاء المتجر (استخدام store_name و slug بناءً على الـ Schema بتاعك)
+    const { data: tenant, error: tenantError } = await supabase
+      .from('tenants')
+      .insert([{ 
+        store_name: storeName, 
+        slug: slug 
+      }])
+      .select()
+      .single();
+
     if (tenantError) return { error: "فشل إنشاء المتجر: " + tenantError.message };
 
     if (tenant) {
-      // أنشئ المستخدم واربطه بالمتجر
+      // 3. ربط المستخدم بالمتجر في جدول users
       const { error: userInsertError } = await supabase.from('users').insert([{
         id: authData.user.id,
         email,
@@ -39,11 +44,9 @@ export async function signUpAction(formData: FormData) {
         role: 'merchant'
       }]);
       
-      // إذا فشل الـ Insert في Users، نرجع خطأ ولا ننتظر الـ Redirect
-      if (userInsertError) return { error: "فشل إنشاء المستخدم في البيانات: " + userInsertError.message };
+      if (userInsertError) return { error: "فشل ربط المستخدم: " + userInsertError.message };
     }
   }
 
-  // 4. لا يحدث الـ Redirect إلا بعد نجاح كل الخطوات أعلاه
   redirect('/auth/signup/success');
 }

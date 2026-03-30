@@ -18,7 +18,7 @@ export default function ForgotPasswordForm() {
       <form action={handleSubmit} className="space-y-4">
         <input name="email" type="email" placeholder="البريد الإلكتروني" required 
           className="w-full p-4 bg-black border border-zinc-800 text-white rounded-xl focus:border-blue-500 outline-none transition-all" />
-        <button className="w-full bg-blue-600 hover:bg-blue-500 py-4 text-white font-black rounded-xl transition-all shadow-lg shadow-blue-600/20">
+        <button className="w-full btn-primary-glow py-4 text-white font-black rounded-xl transition-all shadow-lg shadow-blue-600/20">
           إرسال الرابط
         </button>
       </form>

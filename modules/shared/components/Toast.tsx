@@ -3,16 +3,22 @@ import { useEffect } from 'react';
 
 export default function Toast({ message, type = 'error', onClose }: { message: string, type?: 'error' | 'success', onClose: () => void }) {
   useEffect(() => {
-    const timer = setTimeout(onClose, 4000);
+    const timer = setTimeout(onClose, 5000);
     return () => clearTimeout(timer);
   }, [onClose]);
 
-  const colors = type === 'error' ? 'border-red-500/50 bg-red-900/20 text-red-400' : 'border-green-500/50 bg-green-900/20 text-green-400';
+  const config = type === 'error' 
+    ? { border: 'border-red-500/20', bg: 'bg-red-500/10', icon: '✕', color: 'text-red-400' }
+    : { border: 'border-green-500/20', bg: 'bg-green-500/10', icon: '✓', color: 'text-green-400' };
 
   return (
-    <div className={`fixed bottom-8 right-8 z-[100] px-6 py-4 rounded-2xl border backdrop-blur-md shadow-2xl ${colors} animate-pulse`}>
-      <div className="flex items-center gap-3 font-bold text-sm">
-        {message}
+    <div className={`fixed top-8 left-1/2 -translate-x-1/2 z-[9999] animate-slide-up`}>
+      <div className={`flex items-center gap-4 px-6 py-4 rounded-full border ${config.border} ${config.bg} backdrop-blur-2xl shadow-2xl`}>
+        <span className={`flex items-center justify-center w-6 h-6 rounded-full ${config.color} border border-current text-[10px] font-bold`}>
+          {config.icon}
+        </span>
+        <span className={`text-sm font-bold tracking-tight ${config.color}`}>{message}</span>
+        <button onClick={onClose} className="ml-4 text-white/20 hover:text-white transition-colors">✕</button>
       </div>
     </div>
   );

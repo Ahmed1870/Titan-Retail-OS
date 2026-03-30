@@ -4,53 +4,25 @@ module.exports = {
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './modules/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: '#f5f3ff',
-          100: '#ede9fe',
-          500: '#7c3aed',
-          600: '#6d28d9',
-          700: '#5b21b6',
-          900: '#2e1065',
-        },
-        surface: {
-          50: '#f8fafc',
-          100: '#f1f5f9',
-          800: '#1e293b',
-          900: '#0f172a',
-          950: '#080c14',
-        },
+        black: '#000000',
+        zinc: { 950: '#050505', 900: '#0A0A0B', 800: '#141415' },
+        blue: { 500: '#3b82f6', 600: '#2563eb' }
       },
       animation: {
-        'shake': 'shake 0.5s ease',
-        'fade-up': 'fadeUp 0.4s ease',
-        'pulse-glow': 'pulseGlow 2s infinite',
-        'slide-in': 'slideIn 0.3s ease',
+        'float': 'float 6s ease-in-out infinite',
+        'glow': 'glow 2s ease-in-out infinite',
+        'slide-up': 'slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
       },
       keyframes: {
-        shake: {
-          '0%,100%': { transform: 'translateX(0)' },
-          '20%': { transform: 'translateX(-6px)' },
-          '40%': { transform: 'translateX(6px)' },
-          '60%': { transform: 'translateX(-4px)' },
-          '80%': { transform: 'translateX(4px)' },
-        },
-        fadeUp: {
-          from: { opacity: '0', transform: 'translateY(16px)' },
-          to: { opacity: '1', transform: 'translateY(0)' },
-        },
-        pulseGlow: {
-          '0%,100%': { boxShadow: '0 0 20px rgba(124,58,237,0.3)' },
-          '50%': { boxShadow: '0 0 40px rgba(124,58,237,0.7)' },
-        },
-        slideIn: {
-          from: { opacity: '0', transform: 'translateY(-12px)' },
-          to: { opacity: '1', transform: 'translateY(0)' },
-        },
-      },
+        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-20px)' } },
+        glow: { '0%, 100%': { opacity: 0.3 }, '50%': { opacity: 0.6 } },
+        slideUp: { from: { opacity: 0, transform: 'translateY(20px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
+      }
     },
   },
   plugins: [],
